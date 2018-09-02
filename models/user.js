@@ -66,6 +66,19 @@ user.methods.comparePassword = function(candidatePassword,next){
     });
 };
 
+
+
+user.methods.removeToken = function(token){
+    var self = this;
+  return  self.update({
+      $pull:{
+        tokens:{
+          token
+        }
+      }
+    })
+}
+
 user.methods.generateAuthToken = function(){
   var self = this;
   var access = 'auth';

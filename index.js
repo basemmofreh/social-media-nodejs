@@ -111,6 +111,14 @@ app.delete('/api/remove/message',async(req,res)=>{
 //     })
 //   });
 
+app.delete('/api/auth/logout',authenticate,async(req,res)=>{
+  try{
+    await   req.user.removeToken(req.token);
+    res.status(200).send("logged out succussfuly");
+  }catch(e){
+      res.status(400).send("unable to logout");
+  }
+})
 app.listen(port,function(){
     console.log(`Server is listening on port ${port}`);
 })
