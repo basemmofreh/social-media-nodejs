@@ -1,7 +1,10 @@
 var express = require('express');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+const http = require('http');
 var app = express();
+var socketIO = require('socket.io');
+var server = http.createServer(app);
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var db = require('./models');
@@ -15,6 +18,7 @@ var _ = require('lodash');
 const corsOptions = {
   exposedHeaders: 'x-auth'
 };
+var io = socketIO(server);
 
 const port = process.env.PORT || 8081;
 //middleware
@@ -23,7 +27,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cookieParser());
 app.use(session({secret: "Shh, its a secret!"}));
-
+// io.on('connection',(socket)=>{
+//   console.log('user is connected');
+// });
 
 //return all msgs
 app.get('/api/all',authenticate,async(req,res)=>{
@@ -83,6 +89,7 @@ app.post('/api/add/message',authenticate,async(req,res)=>{
     var msg = await new db.Message({text:req.body.text,userId:req.userId});
     var newMsg = await msg.save();
     var updateMsg = await db.User.findOneAndUpdate({username:req.username},{$push:{messages:newMsg._id}},{new:true});
+    io.emit('newMessage');
     res.status(200).send(msg);
   }catch(e){
     console.log(e);
@@ -119,7 +126,7 @@ app.delete('/api/auth/logout',authenticate,async(req,res)=>{
       res.status(400).send("unable to logout");
   }
 })
-app.listen(port,function(){
+server.listen(port,function(){
     console.log(`Server is listening on port ${port}`);
 })
 
