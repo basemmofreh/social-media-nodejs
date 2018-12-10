@@ -26,6 +26,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cookieParser());
+//don't tell anyone about this secret please :D
 app.use(session({secret: "Shh, its a secret!"}));
 // io.on('connection',(socket)=>{
 //   console.log('user is connected');
@@ -36,7 +37,12 @@ app.get('/api/all',authenticate,async(req,res)=>{
     // if(!req.session.page_view){
     req.session.page_view=1;
     try{
-      let msgs = await db.Message.find({}).populate({path:'userId',model:'User',select:['profileImageUrl','username']}).exec();
+      let msgs = await db.Message.find({})
+      .populate({path:'userId',model:'User',select:['profileImageUrl','username']})
+      .populate({path:'likes',model:'User',select:["username","_id"]})
+      .exec();
+const mappedArray = _.map( msgs.likes, 'el' )
+      console.log(mappedArray);
       // tempData= msgs;
       res.status(200).send(msgs)
     }catch(e){
@@ -70,6 +76,20 @@ app.post('/api/auth/signup',function(req,res){
   }).catch((err)=>{
         res.status(400).send(err);
       })
+})
+
+app.post('/api/auth/msg/like',authenticate,async(req,res)=>{
+  var msgId = req.body.msgId;
+  try{
+  var updateMsgLikes = await db.Message.findOneAndUpdate({_id:msgId},{$addToSet:{likes:req.userId}},{new:true});
+  let lovedBy = await db.Message.findOne({_id:msgId}).populate({path:'likes',model:'User',select:['username']}).exec();
+  console.log(lovedBy.likes[0].username);
+  res.status(200).send(lovedBy);
+  }catch(e){
+    console.log(e)
+  res.status(400).send(e);
+}
+
 })
 //signin
 app.post('/api/auth/signin',async(req,res)=>{

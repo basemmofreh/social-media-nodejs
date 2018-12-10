@@ -36,7 +36,7 @@ var user = new schema({
         type:String,
         required:true
       }
-    }]
+    }],
 })
 //
 // overrides the return value from creating new user
@@ -82,6 +82,7 @@ user.methods.removeToken = function(token){
 user.methods.generateAuthToken = function(){
   var self = this;
   var access = 'auth';
+  //don't tell anyone about this secret please :D
   var token = jwt.sign({_id:self._id.toHexString(),access},'hello world');
   self.tokens.push({access,token});
   return self.save().then(()=>{
@@ -112,6 +113,7 @@ user.statics.findByToken = function(token){
   var user = this;
   var decoded;
   try{
+    //don't tell anyone about this secret please :D
     decoded = jwt.verify(token,"hello world");
   }
   catch(e)

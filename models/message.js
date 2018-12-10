@@ -12,7 +12,11 @@ var message = new schema ({
   userId:{
     type:ObjectId,
     ref:"User"
-  }
+  },
+  likes:[{
+    type:ObjectId,
+    ref:'user'
+  }]
 },{timestamps:true
 });
 
